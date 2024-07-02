@@ -111,38 +111,39 @@ def thread_send_message():
     @client.event
     async def on_ready():
         print(f'Conectado como {client.user}')
-        ##channel_id = 1255141323476963349
-        ##channel = client.get_channel(channel_id)
-        ##WITH REFERRAL
-        ##message_id = 1  
-        ##message_reference = discord.MessageReference(message_id=message_id, channel_id=channel_id, fail_if_not_exists=False)
-        ##await channel.send('Respuesta al mensaje anterior', reference=message_reference)
-        ##await channel.send('MENSAJE DESDE EL POST')
-        ##user_id = 123456789012345678  # Reemplaza con el ID del usuario
-
-    # Obtener al usuario por su ID
-        user = await client.fetch_user(749001989232394341)
-
-        if user:
-            try:
-                # Enviar el mensaje privado
-                message = await user.send('¡Hola! Este es un mensaje privado.')
-                print(f'Mensaje enviado a {user.name}')
-                print("-----------------------------------------------------------")
-                print("Mensaje enviado: ",message)
-                print("-----------------------------------------------------------")
-            except discord.Forbidden:
-                print('No tengo permisos para enviar un mensaje privado a este usuario.')
-                return 
-            except discord.HTTPException as e:
-                print(f'Error al enviar el mensaje: {e}')
-        else:
-            print('Usuario no encontrado.')
-        # Cerrar la sesión del bot después de enviar el mensaje
-    
-        await client.close()
-
-    # Iniciar el bot
+        typeChannel = 'DMChannel'
+        if typeChannel == 'DMChannel':
+            user_id = 749001989232394341
+            user = await client.fetch_user(user_id)
+            if user:
+                try:
+                    message = await user.send('¡Hola! Este es un mensaje privado.')
+                    print(f'Mensaje enviado a {user.name}')
+                    print("-----------------------------------------------------------")
+                    print("Mensaje enviado: ",message)
+                    print("-----------------------------------------------------------")
+                except discord.Forbidden:
+                    print('No tengo permisos para enviar un mensaje privado a este usuario.')
+                    return 
+                except discord.HTTPException as e:
+                    print(f'Error al enviar el mensaje: {e}')
+            else:
+                print('Usuario no encontrado.')        
+            await client.close()
+            return message
+        
+        elif typeChannel == 'TextChannel':
+            channel_id = 1255141323476963349
+            channel = client.get_channel(channel_id)
+            ##WITH REFERRAL
+            message_id = 'id'
+            if message_id>0 :
+                message_reference = discord.MessageReference(message_id=message_id, channel_id=channel_id, fail_if_not_exists=False)
+                message = await channel.send('Respuesta al mensaje anterior', reference=message_reference)
+            else:
+                message = await channel.send('MENSAJE DESDE EL POST')
+            await client.close()
+            return message
     client.run(TOKEN)
 
 app = Flask(__name__)
@@ -154,7 +155,7 @@ def handle_post():
     print(data)
     
     response = thread_send_message()
-    
+    print(response)
     return jsonify({'message': 'Datos recibidos', 'data': data}), 200
 
 if __name__ == '__main__':
@@ -162,7 +163,9 @@ if __name__ == '__main__':
     hilo1 = threading.Thread(target=thread_discord, args=())
     hilo1.daemon = True
     hilo1.start()
-    app.run(host='0.0.0.0',port=5000)
+    load_dotenv()
+    ip = os.getenv('IP')
+    app.run(host=ip,port=5000)
     
     while True:
         time.sleep(3600)
