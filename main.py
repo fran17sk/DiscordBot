@@ -165,7 +165,7 @@ if __name__ == '__main__':
     hilo1.start()
     load_dotenv()
     ip = os.getenv('IP')
-    app.run(host=ip,port=5000)
+    app.run(host=ip,port=5000,ssl_context=('cert.pem', 'key.pem'))
     
     while True:
         time.sleep(3600)
