@@ -16,34 +16,115 @@ async def response():
     data = response.json()
     text_message = data['items'][0]['text_message']
     return text_message
+def message_content(message):
+    if message.content:
+        return message.content
+    else:
+        return 'Datos Adjuntos'
+
+def attachments(message):
+    count = 0
+    attachment_string = ''
+    for attachment in message.attachments:
+        if count >0 :
+            attachment_string += ','
+        attachment_string += '{'
+        attachment_string += (f'"id":"{str(attachment.id)}","url": "{str(attachment.url)}","type":"{str(attachment.content_type)}"')
+        attachment_string += '}'
+        count += 1
+        print(attachment)
+    return attachment_string
+def replace_backslashes(obj):
+    if isinstance(obj, str):
+        obj = obj.replace('["{','[{')
+        obj = obj.replace('}"]','}]')
+        return obj.replace('\\', '')
+    elif isinstance(obj, list):
+        return [replace_backslashes(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: replace_backslashes(value) for key, value in obj.items()}
+    return obj
 
 def sent_message(self,message):
     url = "https://gb78e32e84bed74-db08fvx.adb.us-phoenix-1.oraclecloudapps.com/ords/produccion/meta/discord"
     if isinstance(message.channel, discord.TextChannel):
-           payload = json.dumps({
-                                "field": "discord",
-                                "value": {
-                                        "sender":"TextChannel",
-                                        "author": {
-                                                    "id": str(message.author.id),
-                                                    "name": str(message.author.name),
-                                                    "global_name":str(message.author.global_name)
-                                        },
-                                        "channel": {
-                                                    "id": str(message.channel.id),
-                                                    "name":str(message.channel.name),
-                                                    "position":str(message.channel.position),
-                                                    "nsfw":str(message.channel.nsfw),
-                                                    "category_id":str(message.channel.category_id)
-                                        },
-                                        "message": {
-                                            "mid": str(message.id),
-                                            "text": str(message.content),
-                                            "timestamp": str(message.created_at)
+           if message.attachments:
+            payload = json.dumps({
+                                    "field": "discord",
+                                    "value": {
+                                            "sender":"TextChannel",
+                                            "author": {
+                                                        "id": str(message.author.id),
+                                                        "name": str(message.author.name),
+                                                        "global_name":str(message.author.global_name)
+                                            },
+                                            "channel": {
+                                                        "id": str(message.channel.id),
+                                                        "name":str(message.channel.name),
+                                                        "position":str(message.channel.position),
+                                                        "nsfw":str(message.channel.nsfw),
+                                                        "category_id":str(message.channel.category_id)
+                                            },
+                                            "type" : "attachments",
+                                            "attachments":[ 
+                                                str(attachments(message))  
+                                            ],
+                                            "message": {
+                                                "mid": str(message.id),
+                                                "text": message_content(message)
+                                            }
                                         }
-                                    }
-                                })
+                                    })
+           else:
+            payload = json.dumps({
+                                    "field": "discord",
+                                    "value": {
+                                            "sender":"TextChannel",
+                                            "author": {
+                                                        "id": str(message.author.id),
+                                                        "name": str(message.author.name),
+                                                        "global_name":str(message.author.global_name)
+                                            },
+                                            "channel": {
+                                                        "id": str(message.channel.id),
+                                                        "name":str(message.channel.name),
+                                                        "position":str(message.channel.position),
+                                                        "nsfw":str(message.channel.nsfw),
+                                                        "category_id":str(message.channel.category_id)
+                                            },
+                                            "type" : "text",
+                                            "message": {
+                                                "mid": str(message.id),
+                                                "text": str(message.content),
+                                                "timestamp": str(message.created_at)
+                                            }
+                                        }
+                                    })
     else:
+        if message.attachments:
+            payload = json.dumps({
+                                    "field": "discord",
+                                    "value": {
+                                            "sender":"DMChannel",
+                                            "author": {
+                                                        "id": str(message.author.id),
+                                                        "name": str(message.author.name),
+                                                        "global_name":str(message.author.global_name)
+                                            },
+                                            "channel": {
+                                                        "id": str(message.channel.id),
+                                                        "recipient":str(message.channel.name),
+                                            },
+                                            "type" : "attachments",
+                                            "attachments":[ 
+                                                str(attachments(message))  
+                                            ],
+                                            "message": {
+                                                "mid": str(message.id),
+                                                "text": message_content(message)
+                                            }
+                                        }
+                                    })
         payload = json.dumps({
                                 "field": "discord",
                                 "value": {
@@ -57,6 +138,7 @@ def sent_message(self,message):
                                                     "id": str(message.channel.id),
                                                     "recipient":str(message.channel.recipient)
                                         },
+                                        "type" : "text",
                                         "message": {
                                             "mid": str(message.id),
                                             "text": str(message.content),
@@ -69,8 +151,7 @@ def sent_message(self,message):
     'Content-Type': 'application/json',
     'Authorization': 'IITA_BOT'
     }
-
-    response = requests.request("POST", url, headers=headers, data=payload)
+    response = requests.request("POST", url, headers=headers, data=replace_backslashes(payload))
 
     print(response.text)
 
@@ -80,14 +161,14 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         print(f'Message from {message.author}: {message.content}')
-        print(message)
+        print(f'Message attachments: {message.attachments}')
+        print(message.stickers)
         if(message.author.id == 1254824318601400473):
             return 
         else: 
             sent_message(self,message)
-            channel = message.channel
-            respuesta = await response()
-            await channel.send(respuesta)
+            
+            
           
 def thread_discord():
     intents = discord.Intents.default()
@@ -165,7 +246,7 @@ if __name__ == '__main__':
     hilo1.start()
     load_dotenv()
     ip = os.getenv('IP')
-    app.run(host=ip,port=5000,ssl_context=('cert.pem', 'key.pem'))
+    app.run(host=ip,port=5000)
     
     while True:
         time.sleep(3600)
