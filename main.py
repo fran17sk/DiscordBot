@@ -20,7 +20,7 @@ def message_content(message):
     if message.content:
         return message.content
     else:
-        return 'Datos Adjuntos'
+        return ' '
 
 def attachments(message):
     count = 0
