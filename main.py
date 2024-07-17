@@ -161,8 +161,6 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         print(f'Message from {message.author}: {message.content}')
-        print(f'Message attachments: {message.attachments}')
-        print(message.stickers)
         if(message.author.id == 1254824318601400473):
             return 
         else: 
