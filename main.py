@@ -247,7 +247,7 @@ if __name__ == '__main__':
     app.run(host=ip,port=5000)
     
     while True:
-        time.sleep(3600)
+        time.sleep(157680000)
 
 
 
