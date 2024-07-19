@@ -125,28 +125,29 @@ def sent_message(self,message):
                                             }
                                         }
                                     })
-        payload = json.dumps({
-                                "field": "discord",
-                                "value": {
-                                        "sender":"DMChannel",
-                                        "author": {
-                                                    "id": str(message.author.id),
-                                                    "name": str(message.author.name),
-                                                    "global_name":str(message.author.global_name)
-                                        },
-                                        "channel": {
-                                                    "id": str(message.channel.id),
-                                                    "recipient":str(message.channel.recipient)
-                                        },
-                                        "type" : "text",
-                                        "message": {
-                                            "mid": str(message.id),
-                                            "text": str(message.content),
-                                            "timestamp": str(message.created_at)
+        else:
+            payload = json.dumps({
+                                    "field": "discord",
+                                    "value": {
+                                            "sender":"DMChannel",
+                                            "author": {
+                                                        "id": str(message.author.id),
+                                                        "name": str(message.author.name),
+                                                        "global_name":str(message.author.global_name)
+                                            },
+                                            "channel": {
+                                                        "id": str(message.channel.id),
+                                                        "recipient":str(message.channel.recipient)
+                                            },
+                                            "type" : "text",
+                                            "message": {
+                                                "mid": str(message.id),
+                                                "text": str(message.content),
+                                                "timestamp": str(message.created_at)
+                                            }
                                         }
-                                    }
-                                })
-    
+                                    })
+        
     headers = {
     'Content-Type': 'application/json',
     'Authorization': 'IITA_BOT'
