@@ -162,7 +162,8 @@ class MyClient(discord.Client):
 
     async def on_message(self, message):
         print(f'Message from {message.author}: {message.content}')
-        if(message.author.id == 1254824318601400473):
+        print(message)
+        if(message.author.id == 1267500728985981039):
             return 
         else: 
             sent_message(self,message)
